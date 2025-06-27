@@ -1,299 +1,210 @@
-﻿#include "zagolovok1.h"
+#include "zagolovok1.h"
 #include <iostream>
-#include <climits>
-
+#include<climits>
 using namespace std;
 
-/* КОНСТРУКТОР УЗЕЛ С ID И ВЗЯТКОЙ*/
-OfficialNode::OfficialNode(int id, int sum) {
-    idUzla = (id <= 0) ? -1 : id;
-    sumSbor = (id <= 0) ? 0 : sum;
-    if (id <= 0) {
-        cout << "ОШИБКА АЙДИ УЗЛА ОТСЧЁТ С 1!\n";
-    }
-    nodeChin = nullptr;
-    countChin = 0;
-    superior = nullptr;
+
+TreeNode::TreeNode(int id, int summa) {
+	nomer = id;
+	vzyatka = summa;
+	parent = nullptr;
+	sin = nullptr;
+	brat = nullptr;
+
 }
 
-/*ОСВОБОЖДАЕМ ПАМЯТЬ*/
-OfficialNode::~OfficialNode() {
-    int i = 0;
-    while (i < countChin) {
-        if (nodeChin[i]) {
-            delete nodeChin[i];
-        }
-        i++;
-    }
-    if (nodeChin) {
-        delete[] nodeChin;
-    }
+
+Derevo::Derevo(int n) {
+	sizeTree = n;
+	usedNodes = 0;
+	root = nullptr;
+	allNodes = new TreeNode * [n];
+	finalPath = new int[n];
+	finalDlina = 0;
+	countVzyatka = 0;
+
+
 }
 
-/*ДОБАВЛЕНИЕ УЗЛА В МАССИВ*/
-void OfficialNode::addNode(OfficialNode* node) {
-    if (!node || node->idUzla == -1) {
-        cout << "ОШИБКА! НЕЛЬЗЯ ДОБАВИТЬ ПОТОМКА.\n";
-        return;
-    }
-    OfficialNode** newNodeChin = new OfficialNode * [countChin + 1];
-    int i = 0;
-    while (i < countChin) {
-        newNodeChin[i] = nodeChin[i];
-        i++;
-    }
-    newNodeChin[countChin] = node;
-    delete[] nodeChin;
-    nodeChin = newNodeChin;
-    countChin++;
+/*МЕТОДЫ ДЛЯ РЕШЕНИЯ ЗАДАЧИ*/
+
+
+/**/
+void Derevo::addSon(TreeNode* parent, TreeNode* sin) {
+	if (!parent->sin) {
+		parent->sin = sin;
+	}
+	else {
+		TreeNode* temp = parent->sin;
+		while (temp->brat) {
+			temp = temp->brat;
+		}
+		temp->brat = sin;
+	}
+	sin->parent = parent;
 }
 
-/*КОРЕНЬ ПУСТОЙ*/
-derevo::derevo() {
-    root = nullptr;
-    allNode = nullptr;
-    officials_count = 0;
-    optimalPath = nullptr;
-    pathLength = 0;
-    minSum = -1;
+
+
+
+
+/*ДОБАВЛЕНИЕ НОВОГО УЗЛА,КОТОРЫЙ ХРАНИТ ЧИСЛО(СУММУ ВЗЯТКИ)*/
+int Derevo::addNode(int vzyatka, int parentID) {
+	if (usedNodes >= sizeTree) {
+		return 1;
+	}
+	TreeNode* newNode = new TreeNode(usedNodes + 1, vzyatka);
+	if (parentID == 0) {
+		root = newNode;
+	}
+	else {
+		TreeNode* parent = nullptr;
+		for (int i = 0; i < usedNodes; i++) {
+			if (allNodes[i]->nomer == parentID) {
+				parent = allNodes[i];
+				break;
+			}
+		}
+
+		if (!parent) return 2;
+		addSon(parent, newNode);
+	}
+
+	allNodes[usedNodes++] = newNode;
+	return 0;
+
 }
 
-/*ОСВОБОЖДАЕМ ПАМЯТЬ*/
-derevo::~derevo() {
-    int i = 0;
-    while (i < officials_count) {
-        if (allNode[i]) {
-            delete allNode[i];
-        }
-        i++;
-    }
-    delete[] allNode;
-    delete[] optimalPath;
+
+
+
+
+/*ВВОД С КЛАВИАТУРЫ В КОНСОЛИ ПОКА НЕ ДОБАВИМ N УЗЛОВ*/
+void Derevo::vvodConsole() {
+	cout << "ВВЕДИТЕ РАЗМЕР ВЗЯТКИ ГЛАВНОГО ЧИНОВНИКА =   ";
+	int rootSum;
+	while (!(cin >> rootSum) || rootSum < 0) {
+		cin.clear();
+		cin.ignore(1000, '\n');
+		cout << "ОШИБКА! ВЗЯТКА НЕ МОЖЕТ БЫТЬ ОТРИЦАТЕЛЬНОЙ. ";
+	}
+	addNode(rootSum, 0);
+
+
+	for (int i = 1; i < sizeTree; i++) {
+		int parentID, sum;
+		cout << "ОСТАЛОСЬ ЧИНОВНИКОВ ДЛЯ ВВОДА =  " << (sizeTree - usedNodes) << endl;
+		cout << "ВВЕДИТЕ ПОРЯДКОВЫЙ НОМЕР РОДИТЕЛЯ И ЗНАЧЕНИЕ ВЗЯТКИ ДЛЯ ЧИНОВНИКА" << i + 1 << " =";
+		while (!(cin >> parentID) || parentID <= 0) {
+			cin.clear();
+			cin.ignore(1000, '\n');
+			cout << "ОШИБКА ПОРЯДКОВЫЙ НОМЕР РОДИТЕЛЬСКОГО УЗЛА НЕ МОЖЕТ БЫТЬ ОТРИЦАТЕЛЬНЫМ!";
+		}
+		while (!(cin >> sum) || sum < 0) {
+			cin.clear();
+			cin.ignore(1000, '\n');
+			cout << "ОШИБКА! ВЗЯТКА НЕ МОЖЕТ БЫТЬ ОТРИЦАТЕЛЬНОЙ! ";
+		}
+
+		if (addNode(sum, parentID) != 0) {
+			cout << "НЕ ПОЛУЧИЛОСЬ ДОБАВИТЬ УЗЕЛ!";
+			i--;
+		}
+	}
 }
 
-/*ДОБАВЛЕНИЕ НОВГОО УЗЛА В ДЕРЕВО,ПРОВЕРКА НА ДУРАКА*/
-int derevo::addDerevo(int id, int sum, int countChin) {
-    if (id <= 0) {
-        cout << "ОШИБКА: ID ДОЛЖЕН БЫТЬ БОЛЬШЕ 0!\n";
-        return 1;
-    }
-    if (sum < 0) {
-        cout << "ОШИБКА: СУММА ВЗЯТКИ НЕ МОЖЕТ БЫТЬ МЕНЬШЕ 0!\n";
-        return 1;
-    }
-    if (countChin < 0) {
-        cout << "ОШИБКА! ПОТОМКОВ НЕ МОЖЕТ БЫТЬ МЕНЬШЕ 0\n";
-        return 1;
-    }
-    int i = 0;
-    while (i < officials_count) {
-        if (allNode[i]->idUzla == id) {
-            cout << "ОШИБКА: ID " << id << " УЖЕ СУЩЕСТВУЕТ!\n";
-            return 1;
-        }
-        i++;
-    }
-    OfficialNode* newNode = new OfficialNode(id, sum);
-    if (newNode->idUzla == -1) {
-        delete newNode;
-        return 1;
-    }
-    OfficialNode** mas = new OfficialNode * [officials_count + 1];
-    i = 0;
-    while (i < officials_count) {
-        mas[i] = allNode[i];
-        i++;
-    }
-    mas[officials_count] = newNode;
-    delete[] allNode;
-    allNode = mas;
-    officials_count++;
-    if (!root) {
-        root = newNode;
-    }
-    newNode->countChin = countChin;
-    if (countChin > 0) {
-        newNode->nodeChin = new OfficialNode * [countChin];
-        i = 0;
-        while (i < countChin) {
-            newNode->nodeChin[i] = nullptr;
-            i++;
-        }
-    }
-    return 0;
+
+/*ОБХОД ДЕРЕВА ДЛЯ ПОИСКА ОПТИМАЛЬНОГО ПУТИ*/
+int Derevo::recObhod(TreeNode* node, int* path, int& len) {
+	if (!node) {
+		return INT_MAX;
+	}
+
+	if (!node->sin) {
+		path[len++] = node->nomer;
+		return node->vzyatka;
+
+	}
+
+	int minSum = INT_MAX, bestLen = 0;
+	int* bestPath = new int[sizeTree];
+	for (TreeNode* potomok = node->sin; potomok; potomok = potomok->brat) {
+		int* tempPath = new int[sizeTree];
+		int tempLen = 0;
+		int sum = recObhod(potomok, tempPath, tempLen);
+		if (sum < minSum) {
+			minSum = sum;
+			bestLen = tempLen;
+			for (int i = 0; i < tempLen; i++) {
+				bestPath[i] = tempPath[i];
+			}
+		}
+		delete[] tempPath;
+	}
+
+	for (int i = 0; i < bestLen; i++) {
+		path[len++] = bestPath[i];
+
+
+	}
+	path[len++] = node->nomer;
+	delete[]bestPath;
+
+	return minSum + node->vzyatka;
+
 }
 
-/*РЕКУРСИВНЫЙ ОБХОД */
-void derevo::spusk(OfficialNode* node, bool* visited, int& count) {
-    if (!node || node->idUzla == -1) {
-        if (node && node->idUzla == -1) {
-            cout << "ОШИБКА УЗЕЛ ОТРИЦАТЕЛЬНЫЙ!\n";
-        }
-        return;
-    }
-    if (visited[node->idUzla - 1]) {
-        cout << "ОШИБКА ID=" << node->idUzla << "!\n";
-        return;
-    }
-    visited[node->idUzla - 1] = true;
-    count++;
-    int i = 0;
-    while (i < node->countChin) {
-        if (node->nodeChin[i]) {
-            spusk(node->nodeChin[i], visited, count);
-        }
-        i++;
-    }
+
+/*ОПРЕДЕЛЯЕМ НАИМЕНЬШУЮ СУММУ ВЗЯТКИ*/
+int Derevo::minVzyatka() {
+	finalDlina = 0;
+	countVzyatka = recObhod(root, finalPath, finalDlina);
+	return countVzyatka;
+
 }
 
-/*ЗАЩИТА ОТ ДУРАКА ЕСТЬ ЛИ ГЛАВНЫЙ ЧИНОВНИК(КОРЕНЬ ДЕРЕВА)*/
-int derevo::validateHierarchy() {
-    if (!root) {
-        cout << "ОШИБКА; НЕТ КОРНЯ ДЕРЕВА! \n";
-        return 1;
-    }
-    if (officials_count == 0) {
-        cout << "ОШИБКА:ДЕРЕВО ПУСТОЕ\n";
-        return 1;
-    }
-    bool* visited = new bool[officials_count]();
-    int count = 0;
-    spusk(root, visited, count);
-    if (count != officials_count) {
-        cout << "ОШИБКА НЕ ВСЕ УЗЛЫ (" << count << "/" << officials_count << ")\n";
-        delete[] visited;
-        return 1;
-    }
-    delete[] visited;
-    return 0;
+
+/*СТРОИМ ДЕРЕВО ЧИНОВНИКОВ*/
+void Derevo::printDerevo(TreeNode* node, int glubina) {
+	if (!node) {
+		return;
+
+	}
+	for (int i = 0; i < glubina; i++)
+		cout << "         ";
+	cout << "(" << node->nomer << " ; " << node->vzyatka << ")" << "\n";
+	cout << endl;
+	cout << endl;
+	printDerevo(node->sin, glubina + 1);
+	printDerevo(node->brat, glubina);
+
 }
 
-/*МИНИМАЛЬНАЯ СУММА УЗЛА И ЕГО ПОТОМКОВ,ТРАЙ КЭЧ*/
-/*МИНИМАЛЬНАЯ СУММА УЗЛА И ЕГО ПОТОМКОВ,ТРАЙ КЭЧ*/
-int derevo::nodeRes(OfficialNode* node, int* path, int& path_index) {
-    if (!node || node->idUzla == -1) {
-        cout << "ОШИБКА ОТРИЦАТЕЛЬНЫЙ УЗЕЛ!\n";
-        return INT_MAX;
-    }
-    bool has_subordinates = false;
-    int i = 0;
-    while (i < node->countChin) {
-        if (node->nodeChin[i]) {
-            has_subordinates = true;
-            break;
-        }
-        i++;
-    }
-    if (!has_subordinates) {
-        path[path_index++] = node->idUzla;
-        return node->sumSbor;
-    }
-    int minSum = INT_MAX;
-    int best_sub = -1;
-    int* temp_path = new int[officials_count];
-    int* best_path = new int[officials_count];
-    int best_index = 0; // Объявляем best_index
-    try {
-        int temp_index = 0;
-        i = 0;
-        while (i < node->countChin) {
-            if (node->nodeChin[i]) {
-                temp_index = 0;
-                int cost = nodeRes(node->nodeChin[i], temp_path, temp_index);
-                if (cost < minSum && cost != INT_MAX) {
-                    minSum = cost;
-                    best_sub = i;
-                    best_index = temp_index; // Устанавливаем best_index
-                    int j = 0;
-                    while (j < temp_index) {
-                        best_path[j] = temp_path[j];
-                        j++;
-                    }
-                }
-            }
-            i++;
-        }
-    }
-    catch (const std::bad_alloc& e) {
-        cout << "   " << e.what() << "\n";
-        delete[] temp_path;
-        delete[] best_path;
-        return INT_MAX;
-    }
-    i = 0;
-    while (i < best_index) {
-        path[path_index++] = best_path[i];
-        i++;
-    }
-    path[path_index++] = node->idUzla;
-    int total = node->sumSbor;
-    if (minSum != INT_MAX && total <= INT_MAX - minSum) {
-        total += minSum;
-    }
-    else {
-        total = INT_MAX;
-    }
-    delete[] temp_path;
-    delete[] best_path;
-    return total;
+/*ВЫВОД ДЕРЕВА В КОНСОЛИ*/
+void Derevo::vivodDerevo() {
+	printDerevo(root, 0);
 }
 
-/*МИНИМАЛЬНАЯ СУММА ДЛЯ ВСЕГО ДЕРЕВА*/
-int derevo::minCalc() {
-    if (validateHierarchy()) {
-        return 1;
-    }
-    delete[] optimalPath;
-    optimalPath = new int[officials_count];
-    pathLength = 0;
-    minSum = nodeRes(root, optimalPath, pathLength);
-    if (minSum == INT_MAX) {
-        cout << "ОШИБКА НЕ ВОЗМОЖНО ПОСЧИТАТЬ СТОИМОСТЬ\n";
-        return 1;
-    }
-    return 0;
+
+/*ФУНКЦИЯ ВЫВОДИТ В КОНСОЛЬ ИТОГОВУЮ СУММУ ВЗЯТКИ И ПРОДЕЛАННЫЙ ПУТЬ*/
+void Derevo::printFinalPath() {
+	cout << "МИНИМАЛЬНАЯ СУММА ВЗЯТКИ = " << countVzyatka << "\nПРОЙДЕННЫЙ ПУТЬ :";
+	for (int i = 0; i < finalDlina; i++) {
+		cout << finalPath[i];
+		if (i < finalDlina - 1) {
+			cout << "  -->  ";
+		}
+
+	}
+	cout << endl;
 }
 
-/*ВЫВОД РЕЗУЛЬТАТА*/
-void derevo::printRes(OfficialNode* node, string indent, bool is_last) {
-    if (!node) return;
-    if (node->idUzla == -1) {
-        cout << indent << "|----------- ОТРИЦАТЕЛЬНЫЙ УЗЕЛ\n";
-        return;
-    }
-    cout << indent;
-    cout << (indent.empty() ? "" : "|----------- ") << "ID: " << node->idUzla << "   " << node->sumSbor << " \n";
-    int i = 0;
-    while (i < node->countChin) {
-        if (node->nodeChin[i]) {
-            string new_indent = indent + (is_last && i == node->countChin - 1 ? "             " : "|            ");
-            printRes(node->nodeChin[i], new_indent, i == node->countChin - 1);
-        }
-        i++;
-    }
-}
+/*ОЧИСТКА ПАМЯТИ*/
+Derevo::~Derevo() {
+	for (int i = 0; i < usedNodes; i++) {
+		delete allNodes[i];
+	}
+	delete[] allNodes;
+	delete[] finalPath;
 
-/*ВЫВОД ДЕРЕВА*/
-void derevo::printTree() {
-    if (!root) {
-        cout << "ДЕРЕВО ПУСТОЕ\n";
-        return;
-    }
-    cout << "ДЕРЕВО БОКОМ \n";
-    printRes(root, "", true);
-}
-
-/*ИТОГОВАЯ СУММА ВЗЯТКИ*/
-int derevo::finalSumm() {
-    return minSum;
-}
-
-/*ОПТИМАЛЬНОЕ РЕШЕНИЕ*/
-const int* derevo::optimal_Path() {
-    return optimalPath;
-}
-
-/*ДЛИНА ПУТИ В УЗЛАХ*/
-int derevo::getPathLength() {
-    return pathLength;
 }
