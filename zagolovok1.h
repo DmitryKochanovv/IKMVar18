@@ -1,54 +1,52 @@
 #ifndef zagolovok1_h
 #define zagolovok1_h
 using namespace std;
-#include <string>
 
-class OfficialNode {
+
+
+/*УЗЕЛ(ЧИНОВНИК) КОНСТРУКТОР - НОМЕР И СУММА УЗЛА */
+class TreeNode {
+
 public:
-    int idUzla;
-    int sumSbor;
-    OfficialNode** nodeChin;
-    int countChin;
-    OfficialNode* superior;
 
-    /*Конструктор*/
-    OfficialNode(int id, int sum);
-    ~OfficialNode();
-    void addNode(OfficialNode* node);
+	TreeNode* parent;
+	TreeNode* sin;
+	TreeNode* brat;
+	int nomer;
+	int vzyatka;
+	TreeNode(int id, int summa);
 };
 
-class derevo {
-public:
-    OfficialNode* root;
-    OfficialNode** allNode;
-    int officials_count;
-    int* optimalPath;
-    int pathLength;
-    int minSum;
 
-    /*Конструктор класса*/
-    derevo();
-    ~derevo();
-    /*Добавить узел*/
-    int addDerevo(int id, int sum, int countChin);
-    /*Расчет минимума*/
-    int minCalc();
-    /*Вывод в консоль*/
-    void printTree();
-    /*Получить итоговую сумму*/
-    int finalSumm();
-    /*ID оптимального пути*/
-    const int* optimal_Path();
-    /*Получить длину пути : количество элементов в оптимальном пути*/
-    int getPathLength();
+/*ДЕРЕВО(МЕТОДЫ- ДОБАВЛЕНИЕ УЗЛА,ВВОД С КОНСОЛИ,ПОСТРОЕНИЕ ДЕРЕВА,ПОСЛЕДОВАТЕЛЬНОСТЬ ПУТИ И ФИНАЛЬНАЯ ВЗЯТКА-МНИМАЛЬНАЯ*/
+class Derevo {
 
 private:
-    int validateHierarchy();
-    /*Метод обхода в глубину*/
-    void spusk(OfficialNode* node, bool* visited, int& count);
-    /*Рекурсивный поиск : функция возвращает оптимальную сумму для узла и его поддерева*/
-    int nodeRes(OfficialNode* node, int* path, int& path_index);
-    /*Вывод информации по узлу : рекурсивный вывод дерева и его поддерева*/
-    void printRes(OfficialNode* node,string indent, bool is_last);
+
+	TreeNode* root;
+	TreeNode** allNodes;
+	int sizeTree;
+	int usedNodes;
+	int* finalPath;
+	int finalDlina;
+	int countVzyatka;
+
+
+public:
+
+	Derevo(int n);
+	~Derevo();
+	int addNode(int vzyatka, int parentID);
+	void vvodConsole();
+	void vivodDerevo();
+	void printFinalPath();
+	int minVzyatka();
+
+private:
+
+	void addSon(TreeNode* parent, TreeNode* sin);
+	int recObhod(TreeNode* node, int* path, int& dlina);
+	void printDerevo(TreeNode* node, int glubina);
 };
+
 #endif
